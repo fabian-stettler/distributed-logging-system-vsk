@@ -1,0 +1,7 @@
+/target/
+**/*.log
+.project
+.classpath
+.idea
+logs.txt
+.vscode
