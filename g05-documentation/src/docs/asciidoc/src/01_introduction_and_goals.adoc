@@ -1,0 +1,41 @@
+ifndef::imagesdir[:imagesdir: ../images]
+
+// TODO: Übersicht über die Problemstellung (Auftrag und Ziel).
+
+Dieses Dokument beschreibt die Ziele und Anforderungen des Projekts für ein verteiltes Logging-System, das in mehreren Sprints umgesetzt wird, um Zuverlässigkeit, Skalierbarkeit und Erweiterbarkeit sicherzustellen.
+
+== Übersicht der Anforderungen
+
+- Transparente Behandlung von Netzwerkunterbrechungen.
+- Unterstützung mehrerer Logger-Komponenten auf verschiedenen Systemen.
+- Erweiterbarkeit der Speicherformate und flexible Konfigurationsmöglichkeiten.
+- Echtzeitanzeige von Log-Messages über einen LoggerViewer.
+
+=== Qualitätsziele
+
+- Sicherstellung von Konsistenz und Zuverlässigkeit beim Loggen, auch bei Verbindungsunterbrüchen.
+- Hohe Wartbarkeit durch den Einsatz von Design-Patterns wie Adapter und Strategien.
+- Skalierbare Architektur, die wachsende Anforderungen unterstützt.
+- Vorbereitung auf Wettbewerbsbedingungen mit standardisierten Log-Formaten.
+
+
+=== Projektumgebung
+
+[options="header",cols="1,2,2"]
+|===
+| _Rolle_ |  _Gruppenmitglieder_ | _Beschreibung_
+| _Projektüberwachung_ | _R. Gisler, M. Bättig_ | _Überwachung des Fortschritts, Sicherstellung der Ziele und Problemmanagement._
+| _Entwicklerteam_ | _M. Joss, F. Stettler, R. Venetz, T.Felder_ | _Klare Anforderungen, saubere Codebasis, Zugang zu benötigten Ressourcen._
+| _Test-Team_ | _M. Joss, F. Stettler, R. Venetz, T.Felder_ | _Detaillierte Teststrategie, klar definierte Akzeptanzkriterien, verlässliche Testumgebung._
+| _Nutzer_ | _Systemadministratoren_ | _Einfaches Deployment, transparente Log-Ausgabe, Wiederherstellbarkeit nach Fehlern._
+|===
+
+Die Mitglieder des Projektteams haben die folgenden Verantwortlichkeiten innegehabt.
+[options="header",cols="1,4"]
+|===
+| _Aufgabe_ |  _Gruppenmitglied_
+| _Projektleiter_ |  _Fabian Stettler_
+| _Scrum Master_ | _Robin Venetz_
+| _Schnittstellenverantwortlicher_ |_Tobias Felder_
+| _Product-Owner_ | _Michael Joss_
+|===

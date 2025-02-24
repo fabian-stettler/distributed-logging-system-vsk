@@ -1,0 +1,128 @@
+ifndef::imagesdir[:imagesdir: ../images]
+
+// TODO: Wo sinnvoll, Laufzeitsichten (z.B. mittels Sequenzdiagrammen und Beschreibung) von interessanten oder kritischen Abläufen dokumentieren. 
+
+[[section-runtime-view]]
+== Runtime View
+
+=== Erstellung eines neuen LoggerComponent
+
+Das folgende Sequenzdiagramm zeigt auf, wie einen neue LoggerComponent Instanz kreiert wird, anhand eines Beispiels mit der DemoApp:
+
+[mermaid, format="svg", opts="inline"]
+----
+sequenceDiagram
+    title Create Logger instance
+    participant DA as DemoApp
+	participant LSF as LoggerSetupFactory
+    participant LF as LoggerFactory
+	participant Cacher as LogMessageCacheStrategy
+	participant Queue as LogMessageSendQueue
+	participant C as Connection
+    participant LC as LoggerComponent
+
+	DA->>LSF: provider(providerName)
+	LSF->>LF: new LoggerFactory()
+	LF-->>LSF: new LoggerFactory instance
+	LSF-->>DA: new LoggerFactory instance
+	DA->>LF: getLogger(destination, name, ll)
+	LF->>Cacher: new FileCacheStrategy()
+	Cacher-->>LF: cacher instance
+	LF->>Queue: new LogMessageSendQueue(host, port)
+	Queue->>C: new Connection(host, port)
+	C-->>Queue: connection instance
+	Queue-->LF: queue instance
+	LF->>LC: new LoggerComponent(queue, clientName, ll)
+	LC-->>LF: LoggerComponent instance
+	LF-->>DA: LoggerComponent instance
+
+----
+
+Die DemoApp erhält mit von der `LoggerSetupFactory` eine neue Instanz der `LoggerFactory`. Diese `LoggerFactory` kann dann genutzt werden, um mittels `getLogger()` eine
+neue Instanz des LoggerComponents zu erzeugen. Dabei wird von der `LoggerFactory` eine neue `LogMessageSendQueue` erstellt, welche für das Senden von `LogMessages`
+zuständig ist. Dabei wird von der `LoggerFactory` auch eine neue `LogMessageCacheStrategy` erstellt, welche das lokale Caching von `LogMessages` übernimmt.
+
+Die `LogMessageSendQueue` nutzt intern die `Connection` Klasse, um eine TCP Verbindung zum Server aufzubauen und über diese `LogMessages` zu versenden.
+
+
+=== Senden von Logs
+
+Das folgende Sequenzdiagramm zeigt auf, wie Logs von einer Client-App (hier die DemoApp) an den Server versendet werden.
+
+[mermaid, format="svg", opts="inline"]
+----
+sequenceDiagram
+    title Sending logs
+    participant DA as DemoApp
+    participant LC as LoggerComponent
+    participant LM as LogMessage
+	participant Queue as LogMessageSendQueue
+	participant Cacher as LogMessageCacheStrategy
+	participant C as Connection
+
+	DA->>LC: info(message)
+	LC->>LM: new LogMessage(now, name, ll, message)
+	LM-->>LC: message: created instance
+	LC-->>Queue: enqueue(message)
+
+	note over Queue: example with the BlockingLogMessageSendQueue
+
+	alt !connectionReady
+		Queue->>Cacher: save(message)
+	else
+		Queue->>C: send(message)
+		C-->>Queue: sendState
+
+		alt sendState == false
+			Queue->>Cacher: save(message)
+		end
+	end
+----
+
+Die DemoApp kann mittels info, warning etc. Logs an den Server senden. Dabei wird anhand des von der DemoApp übergebenen Texts und des LogLevels eine neue `LogMessage` erstellt. Diese wird dann der `LogMessageSendQueue` übergeben, welche das Versenden von Logs handhabt. Falls keine Verbindung zum Server bestehen sollte, wird die `LogMessage` mit der genutzten Caching-Strategy lokal gespeichert. Sollte eine Verbindung zum Server bestehen, so wird versucht die `LogMessage` zum Server zu senden. Sollte dies scheitern, wird die `LogMessage` lokal zwischengespeichert.
+
+=== Senden von Objekten über das Netzwerk
+
+Das folgende Sequenzdiagramm zeigt auf, wie Objekte zwischen Client und Server ausgetauscht werden:
+
+[mermaid, format="svg", opts="inline"]
+----
+sequenceDiagram
+    title Transfer objects over a TCP stream
+    participant Client as Client
+    participant OBJ as NetworkTransferable
+    participant Conn as Connection
+    participant OUT as NetworkMessageOutputStream
+    participant IN as NetworkMessageInputStream
+    participant Server as Server
+
+    Client->>OBJ: new NetworkTransferable()
+    OBJ-->>Client: obj: new instance
+    Client->>Conn: send(obj)
+    alt isConnected() == false
+        Conn-->>Client: state: false
+    else
+        Conn->>OUT: writeObject(obj)
+        OUT->>OBJ: serialize(this)
+        OUT->>OUT: flush()
+		OUT-->>IN: sends bytes over tcp connection
+        OUT-->>Conn: flushed
+		Conn-->>Client: object sent
+    end
+
+    Server->>IN: nextObject()
+    Note over IN: Reads the next serialVersionID
+    IN->>IN: id: readShort()
+    Note over IN: Selects object type based on serialVersionID
+    alt id == NetworkTransferable.serialVersionUID
+        IN->>OBJ: deserialize(this)
+        OBJ-->>IN: instance: deserialized data
+        IN-->>Server: instance
+    else
+        IN-->>Server: null
+    end
+----
+
+Objekte können mittels des `NetworkMessageOutputStreams` gesendet werden, welcher eine Spezialisierung des `DataOutputStreams` ist. Das schreiben Daten auf den OutputStream handhabt das zu sendende Objekt selbst.
+
+Auf der Gegenseite kann der `NetworkMessageInputStreams` genutzt werden, um das nächste Objekt auf dem Stream zu lesen. Dabei wird zuerst die **serialVersionUID** eingelesen und anhand derer entschieden, welche Implementation von `NetworkTransferable` erstellt werden soll.

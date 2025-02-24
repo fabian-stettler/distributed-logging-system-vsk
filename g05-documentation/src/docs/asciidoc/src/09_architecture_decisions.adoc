@@ -1,0 +1,39 @@
+ifndef::imagesdir[:imagesdir: ../images]
+
+// TODO: Entwurfsentscheide auflisten.
+// Hinweis: Hier die verwendeten Patterns (z.B. Adapter, Strategy) dokumentieren (jeweils mit Diagramm und kurzer Beschreibung).
+
+[[section-design-decisions]]
+== Architecture Decisions
+
+In diesem Kapitel werden die einzelnen, im Projekt verwendeten Patterns mit UML-Diagrammen kurz beschrieben.
+
+
+=== Log Adapter Pattern
+Das LogAdapterPattern ermöglicht den Gebrauch des StringPersistorLogAdapter im LoggerServer und in anderen Klassen wie FileCacheStrategy oder LoggerClient.
+Der LogAdapter wird in unserem Projekt also wiederverwendet. Das Log Adapter Pattern schafft also eine klare Trennung zwischen dem StringPersistor und dem Client (LoggerServer).
+Der StringPersistor kann jetzt in einem möglichen, weiteren Verlauf des Projekts von anderen Klassen, allenfalls mit der Erstellung eines weiteren Adapters wiederverwendet werden.
+
+image:LogAdapterPattern.png[Overview Diagram, width=1200px, title"Log Adapter Pattern"]
+
+
+
+==== Strategy Pattern
+Das Strategy Pattern ermöglicht das Serialisieren und Deserialsieren von LogMessages mithilfe des Interface LogMessageFormatter. 
+Die verschiedenen Klassen der File-Typen implementieren alle dieses Interface.
+StringPersistorLogAdapter oder eine andere Klasse kann jetzt mithilfe der Factory-Methode LogMessageFormatterFactory einen Formatter erstellen, mit welchem dann die LogMessages serialisiert werden können.
+
+image:StrategyPattern.png[Overview Diagram, width=1200px, title="Strategy Pattern"]
+
+
+==== Server Config (Strategy)
+Beim Konfigurieren des Network Interface (host), dem port und dem Log Output files des LoggerServers wird ebenfalls ein Strategy Pattern verwendet. Beim Starten des Servers kann zwischen drei Strategien ausgewählt werden. Die Konfiguration wird entweder direkt mit den Argumenten der command line, mithilfe eines Property Files oder mit einem .env file vorgenommen.
+
+image:ConfigSource Strategy Pattern.png[Overview Diagram, width=1200px, title="ConfigSource Strategy Pattern"]
+
+
+==== LogMessageSendQueue und LogMessageCacheStrategy
+Es wurde auch an weiteren Stellen in der Architektur oft mit Interfaces gearbeitet, um den Source Code für weitere Erweiterungen offenzuhalten. So haben wir für diese beiden Strategy Pattern jeweils nur eine Strategy, aber zukünftig könnten weitere folgen. LogMessageCacheStrategy hat bis anhin nur eine FileCacheStrategy um Inhalte mithilfe des String Persistors in ein File zu speichern, könnte aber in Zukunft auch eine weitere Strategy zum Cachen in einer Datenbank enthalten. Auch das LogMessageSendQueue Interface könnte von weiteren Klassen implementiert werden und dann mit wenig Aufwand auf unseren Logger nutzbar gemacht werden.
+
+image:weitere Strategy Pattern.png[Overview Diagram, width=1200px, title="weitere Strategy Pattern"]
+

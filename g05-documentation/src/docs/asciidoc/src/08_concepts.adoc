@@ -1,0 +1,134 @@
+ifndef::imagesdir[:imagesdir: ../images]
+
+// TODO: Konzepte, welche mehrere Komponenten betreffen (z.B. Schnittstellen, Datenmodell, Testing, Sicherheit) beschreiben.
+// Hinweise:
+// - Hier die proprietäre Schnittstelle zwischen LoggerComponent und LoggerServer dokumentieren.
+// - Hier die Teststrategie dokumentieren (ca. 1/2 A4-Seite):
+//   - Auf welchem Level (System, Komponente, Unit) werden welche Funktionalitäten getestet. Mit Begründung der Wahl.
+//   - Welche Funktionalität wird automatisch getestet und welche manuell? Mit Begründung der Wahl.
+//   - Welche Funktionalität wird auf einer bestimmten Stufe (z.B. Unit) getestet aber nicht auf einer anderen (z.B. System)? Mit Begründung der Entscheidung.
+//   - Zusätzliche Informationen, z.B. ob und für welche Funktionalitäten Test-First eingesetzt wird mit Begründung.
+
+== Concepts
+
+In diesem Kapitel werden die Konzepte, welche mehrere Komponenten betreffen, genauer beschrieben.
+
+=== Schnittstelle zwischen LoggerComponent und LoggerServer
+
+Die Schnittstelle zwischen LoggerComponent und LoggerServer wurde mittels TCP Sockets realisiert. Um Objekte über den TCP Stream zu senden, wird das `NetworkTransferable` Interface verwendet. Dieses gibt die Methode `serialize(DataOutputStream outStream)` vor. In dieser Methode werden alle benötigten Attribute der Klasse auf den Stream geschrieben. Wichtig hierbei ist, dass die `serialVersionUID` des Objektes zuerst auf den Stream geschrieben wird. Anhand dieser kann der Empfänger verschiedene Objekte identifizieren. Der Empfänger nutzt den `NetworkMessageOutputStream`, welcher anhand der `serialVersionUID` der Klassen die entsprechende `deserialize(DataInputStream inStream)` Methode aufruft. Diese Methode liest dann die nötigen Daten aus dem Stream und erstellt ein neues Objekt der entsprechenden Klasse. Ein Sequenzdiagramm dazu befindet sich in der Dokumentation zur Runtime View.
+
+=== Teststrategie für das Logger-Projekt
+
+==== Ziel der Teststrategie
+Die Teststrategie für das Logger-Projekt dient dazu, die Qualität und Funktionsfähigkeit des Loggers sicherzustellen.
+Die Tests sollen sicherstellen, dass alle Anforderungen der User Stories und die Akzeptanzkriterien erfüllt werden.
+Weiter umfasst die Teststrategie manuelle Systemtests, um die wichtigsten Funktionen des Loggers aus Benutzersicht zu prüfen, sowie automatisierte Tests, um eine kontinuierliche Qualitätssicherung zu gewährleisten.
+
+==== Testansätze
+
+===== Manuelle Systemtests
+Die manuellen Tests sollen grundlegende Funktionen des Loggers validieren und sich an den Akzeptanzkriterien der User Stories orientieren.
+Für die drei wichtigsten Anwendungsfälle werden Drehbücher erstellt, um eine strukturierte und nachvollziehbare Prüfung zu gewährleisten.
+
+====== 1. Logs aus Cache nach Client Neustart an Server senden
+Dieser Test überprüft, ob Logs korrekt zwischengespeichert werden, auch wenn von Anfang an keine Verbindung zum Server besteht.
+
+====== Vorbedingungen
+- Java Entwicklungsumgebung installiert (z.B. Intellij IDEA)
+- Java installiert (Version 21.x)
+- g05-demoapp und g05-logger sind lokal ausgecheckt
+- Genutzte Logger Dependency in der DemoApp stimmt mit LoggerServer überein
+
+====== Drehbuch
+|===
+|Schritt |Aktion |Erwartetes Resultat | Effektives Resultat
+
+| DemoApp starten | _main()_ Methode der DemoApp aufrufen | DemoApp startet und ist bereit, Logs an den Server zu senden |
+| Logs senden | Mehrere Logs eingeben | LogMessages werden lokal in einer Datei gespeichert. |
+| DemoApp beenden | _exit_ eingeben | DemoApp beendet sich |
+| LoggerServer starten | _main()_ Methode der Application Klasse aufrufen | Server startet und gibt aus, auf welchem Port/Host er läuft. |
+| DemoApp starten | _main()_ Methode der DemoApp aufrufen | DemoApp startet und ist bereit, Logs an den Server zu senden |
+| Logs verifizieren _(Client)_ | Cache File öffnen | Das lokale Cache-File ist leer |
+| Logs verifizieren _(Server)_ | Log File öffnen | Alle gesendeten Logs sind gespeichert |
+|===
+
+===== 2. LoggerViewer sieht alle LogMessages live
+Dieser Test überprüft, ob der LoggerViewer alle Logs in Echtzeit empfangen und anzeigen kann.
+
+====== Vorbedingungen
+- Java Entwicklungsumgebung installiert (z.B. Intellij IDEA)
+- Java installiert (Version 21.x)
+- g05-demoapp g05-logger sind lokal ausgecheckt
+- Genutzte Logger Dependency in der DemoApp stimmt mit LoggerServer überein
+
+===== Drehbuch
+|===
+|Schritt |Aktion |Erwartetes Resultat | Effektives Resultat
+
+| LoggerServer starten | _main()_ Methode der Application Klasse aufrufen | Server startet und gibt aus, auf welchem Port/Host er läuft. |
+| DemoApp starten | _main()_ Methode der DemoApp aufrufen | DemoApp startet und ist bereit, Logs an den Server zu senden |
+| LoggerViewer starten | _main()_ Methode des LoggerViewer aufrufen | LoggerViewer startet und ist bereit, Logs vom Server zu empfangen |
+| Logs senden | Logs in DemoApp senden | Logs werden zum Server gesendet |
+| Logs anzeigen| CLI des LoggerViewer prüfen | Gesendete LogMessages werden im CLI angezeigt |
+|===
+
+
+===== 3. Verbindungsunterbruch während DemoApp läuft
+Dieser Test überprüft, ob alle Logs zum Server gesendet werden, auch wenn die Verbindung zwischendurch getrennt wurde.
+
+====== Drehbuch
+|===
+|Schritt |Aktion |Erwartetes Resultat | Effektives Resultat
+
+| LoggerServer starten | _main()_ Methode der Application Klasse aufrufen | Server startet und gibt aus, auf welchem Port/Host er läuft. |
+| DemoApp starten | _main()_ Methode der DemoApp aufrufen | DemoApp startet und ist bereit, Logs an den Server zu senden |
+| Logs senden | Logs in DemoApp senden | Logs werden zum Server gesendet |
+| LoggerServer stoppen | LoggerServer beenden | LoggerServer wurde korrekt beendet |
+| Logs senden | Logs in DemoApp senden | Gesendete LogMessages werden lokal im CacheFile zwischengespeichert |
+| LoggerServer starten | _main()_ Methode der Application Klasse aufrufen | Server startet und gibt aus, auf welchem Port/Host er läuft. |
+| Logs verifizieren _(Client)_ | Cache File öffnen | Das lokale Cache-File ist leer |
+| Logs verifizieren _(Server)_ | Log File öffnen | Alle gesendeten Logs sind gespeichert |
+|===
+
+Test-Protokolle sind in diesem Dokument unter Punkt 13 unterhalb dem Glossary zu finden!
+
+===== Weitere manuelle Systemtests
+
+====== Systemtest 1: Log-Erfassung und -Speicherung
+- *Vorbedingungen*: Der LoggerServer ist betriebsbereit und gestartet.
+- *Schritte*:
+  1. Eine neue Log-Nachricht mit Beispieltext eingeben und mit der <Enter> Taste Versenden.
+  2. Überprüfen, ob die Nachricht korrekt im System gespeichert wird.
+- *Erwartetes Ergebnis*: Die Log-Nachricht wird erfolgreich erfasst und in dem File angehängt.
+
+====== Systemtest 2: Filterfunktion
+- *Vorbedingungen*: Der LoggerServer ist betriebsbereit und gestartet.
+- *Schritte*:
+  1. Einen Filter auf ein Loglevel setzen.
+  2. Prüfen, ob nur die Ergebnisse im Log auftauchen, welche das Minimum dessen LogLevels haben.
+- *Erwartetes Ergebnis*: Nur die Einträge, welche das erforderte Log-Level oder ein Log-Level höherer Stufen hat, ist im Log-File anzutreffen.
+
+===== Automatisierte Tests
+Die automatisierten Tests fokussieren sich auf wiederkehrende Testfälle und gewährleisten eine kontinuierliche Überwachung der Qualität.
+Schwerpunkte liegen auf Unit-Tests und Integrations-Tests. Die Tests werden im mvn-build Prozess sowie in der CI/CD-Pipeline integriert, sodass neue Änderungen automatisch überprüft werden.
+
+*Automatisierte Integrations-Tests mit Docker umfassen:*
+Unit-Tests zur Validierung einzelner Funktionen und Methoden.
+Integrations-Tests zur Prüfung der Zusammenarbeit von Komponenten. 
+Unser Projekt umfasst die folgenden-Integrationstests: +
+1. LoggerViewerClientIT: Startet den LoggerServer bzw. LoggerViewerServer innerhalb eines Docker Containers. Logger verbindet sich mit dem LoggerServer und LoggerViewerClient verbindet sich mit dem LoggerViewerServer. Danach werden Nachrichten auf den LoggerServer gesendet und überprüft, ob sie im LoggerViewerClient ankommen. +
+2. CacheLogMessagesIT: Startet den LoggerServer in einem Container und verbindet sich mit einer Instanz eines Loggers auf diesen Server.
+Es werden dann Nachrichten an den Server gesendet und überprüft, ob sie im Container gespeichert worden sind. Der Pfad des Files im Container wird beim Start angegeben. +
+3. ReconnectToServerIT: Startet den LoggerServer in einem Container und verbindet sich mit einer ReconnectConnection darauf. Danach wird der Server gestoppt und wieder gestartet.
+Es wird überprüft, ob die Connection wieder aufgebaut wird. +
+
+*Automatisierte Unit-Tests umfassen unter anderen*
+1. Tests um die Formatter-Strategien zu testen
+2. File CreatorTest: Testet, ob die Files korrekt erstellt werden
+3. LogLevelThresholdTest: Testet, ob die LogMessages korrekt gefiltert werden
+4. Tests um ConfigSource-Varianten zu testen.
+5. StringPersistorTest: Testet, ob die LogMessages korrekt gespeichert werden
+
+
+
+

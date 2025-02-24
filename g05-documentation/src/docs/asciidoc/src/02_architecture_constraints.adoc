@@ -1,0 +1,25 @@
+ifndef::imagesdir[:imagesdir: ../images]
+
+// TODO: Randbedingungen, welche bei der Lösung eingehalten werden müssen, z.B. bestehende Systeme, welche unterstützt werden müssen oder spezielle Anforderungen, welche den Lösungsraum einschränken. 
+
+[[section-architecture-constraints]]
+== Architecture Constraints
+
+Für die Umgebung und Struktur rund um den Logger, haben wir uns dazu entschieden ein Context-Diagramm zu erstellen.
+Dieses Zeigt die relevanten Akteure und Systeme auf und bereitet uns so eine Übersicht über das Gesamtsystem.
+
+image::C4_Context.png[Context Diagramm C4, width=600px, title="C4_Context Diagramm"]
+
+Der Administrator eines Systems kann über das Verteilte Logging System einen Logger auf einem Client einrichten. Dieser Logger ermöglicht es, Logs zentral zu sammeln und zu überwachen. Dabei erhält der Administrator eine umfassende Übersicht über die Logs des jeweiligen Clients, einschliesslich:
+
+- **Echtzeit-Überwachung:** Neue Logs werden sofort an den zentralen LoggerServer weitergeleitet.
+- **Historische Logs:** Alle gespeicherten Logs können bei Bedarf analysiert werden.
+- **LoggerViewer:** Es wurde ein LoggerViewer implementiert, welcher in Echtzeit die eintreffenden Logs aller verbundenen LoggerComponents auf dem LoggerServer angezeigt.
+
+**Beispielhafte Nutzung:**
+
+. Der Administrator konfiguriert einen LoggerComponent auf einem zu überwachenden System, indem er den Hostnamen, sowie den Port des LoggerServers spezifiziert.
+. Mittels dem LoggerComponent können nun LogMessages an den LoggerServer gesendet und somit zentral gesammelt werden.
+. Bei Störungen oder Problemen in der Verbindung zum Server kann das System die LogMessages zwischenspeichern und bei einem erneuten Verbindungsaufbau wieder senden.
+. Die zentral gesammelten LogMessages können mittels eines Monitoring-Tools wie z.B. dem LoggerViewer eingesehen werden
+

@@ -1,0 +1,12 @@
+ifndef::imagesdir[:imagesdir: ../images]
+
+// TODO: Gewählter Lösungsansatz mit Begründung beschreiben. Gefragt ist eine sehr kurze Zusammenfassung.
+
+[[section-solution-strategy]]
+== Solution Strategy
+
+Ziel ist ein Remote-Logging-System, mit welchem Logs von einem Client zu einem Server gesendet werden können. Dabei soll der Client Verbindungsunterbrüche handhaben können und keine LogMessages verlieren.
+
+Damit diese Anforderungen abgedeckt werden können, wird eine TCP-Verbindung zum Server aufgebaut, über welche die LogMessages gesendet werden können. Sollte das Senden fehlschlagen oder ein Verbindungsunterbuch auftreten, wird die entsprechende LogMessage in einer lokalen Datei zwischengespeichert. Dies passiert auch für alle darauffolgenden LogMessages, bei denen noch keine Verbindung zum Server hergestellt werden konnte. Sobald die Verbindung zum Server wieder aufgebaut werden konnte, werden alle lokal gespeicherten LogMessages erneut zum Server gesendet. Somit wird sichergestellt, dass keine LogMessages verloren gehen.
+
+Serverseitig sowie auch Client Seitig (bei einem Verbindungsabbruch oder einem Fehler) werden die LogMessages mittels der StringPersistor API in ein LogFile gespeichert.

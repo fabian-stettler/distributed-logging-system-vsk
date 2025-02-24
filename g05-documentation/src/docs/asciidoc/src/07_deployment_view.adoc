@@ -1,0 +1,64 @@
+ifndef::imagesdir[:imagesdir: ../images]
+
+// TODO: Beschreibung der Zuordnung von Komponenten zu den Systemen, auf welchen diese eingesetzt werden (auch genannt Deployment- oder Zielsysteme) sowie die Anforderungen an diese Zielsystem(e). Ggf. verschiedene Szenarios.
+
+ifndef::imagesdir[:imagesdir: ../images]
+
+[[section-deployment-view]]
+== Deployment View
+
+Dieser Abschnitt beschreibt die Zuordnung von Komponenten zu den Zielsystemen (Deployment-Systeme) sowie die Anforderungen an diese Systeme. Verschiedene Szenarien werden dargestellt, um die Flexibilität und Skalierbarkeit des Systems zu verdeutlichen.
+
+=== Infrastructure Level 1
+
+image:DeploymentDiagramm.jpg[Deployment Diagram, width=600px, title="Infrastructure Level 1 Overview"]
+
+Wie in dem obenstehenden Diagramm ersichtlich, wird das Logger System, auf zwei physischen Komponenten laufen.
+Zum einen auf ein Client welcher die Logs senden will und auf den Server, welcher die Logs sammelt und gebündelt zur Verfügung stellt.
+
+
+Mapping von Building Blocks zur Infrastruktur::
+- _LoggerComponent:_ Wird auf den Client-Systemen ausgeführt und sammelt Log-Messages.
+- _LoggerServer:_ Läuft auf zentralen Servern und verarbeitet Log-Messages.
+- _LoggerViewer:_ Läuft auf demselben System wie der Logger Server und wird  zur Echtzeit-Überwachung betrieben werden.
+
+=== Infrastructure Level 2
+
+==== _LoggerComponent_
+
+**Beschreibung:**
+- Die LoggerComponent wird auf den Zielsystemen der Clients installiert.
+- Sie sammelt Logs und sendet sie über eine TCP/IP-Verbindung an den zentralen LoggerServer.
+- Falls die Verbindung unterbrochen wird, speichert sie Logs lokal zwischen.
+
+**Anforderungen:**
+- Betriebssystem: Plattformunabhängig, Java-kompatibel.
+- Netzwerk: Zugriff auf den LoggerServer erforderlich.
+
+==== _LoggerServer_
+
+**Beschreibung:**
+- Der LoggerServer verarbeitet Log-Messages und speichert sie über die StringPersistor-Komponente.
+
+**Anforderungen:**
+- Netzwerk: stabile Verbindung zu LoggerClients und LoggerViewer.
+- Speicher: Ausreichend Kapazität für persistente Log-Daten.
+
+==== _LoggerViewer_
+
+**Beschreibung:**
+- Der LoggerViewerServer pusht die Log-Nachrichten die der Server erhält an verbundene Clients.
+- Der LoggerViewerServer läuft auf demselben System wie der LoggerServer
+
+**Anforderungen:**
+- Betriebssystem: Plattformunabhängig.
+- Netzwerk: Zugriff auf LoggerServer erforderlich.
+
+==== _LoggerViewerClient_
+
+**Beschreibung:**
+- Der LoggerViewerClient läuft auf einem eigenen System und kann sich auf den LoggerViewerServer verbinden und Messages anzeigen lassen.
+- er wird mit einer .jar Datei gestartet und gibt Logs auf der Console aus.
+**Anforderungen:**
+- Betriebssystem: Plattformunabhängig.
+- Netzwerk: Zugriff auf LoggerViewerServer erforderlich.

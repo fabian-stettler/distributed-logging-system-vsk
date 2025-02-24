@@ -1,0 +1,53 @@
+ifndef::imagesdir[:imagesdir: ../images]
+
+// TODO: Anhand von Datenflüssen beschreiben wie das zu entwickelnde System eingesetzt wird.
+// Also Daten, welche Benutzer oder umgebende Systeme in das zu entwickelnde System einspeisen oder abgreifen.
+// Diese Beschreibung wird oft von einem Diagramm unterstützt. Dieses Diagram ist in VSK Pflicht!
+// Hinweis: Hier unbedingt Benutzerschnittstellen und externe Schnittstellen mit Version spezifizieren.
+
+[[section-system-scope-and-context]]
+== System Scope and Context
+
+=== Business Context
+
+[cols="1,2", options="header"]
+|===
+| Externe Akteure | Beschreibung
+
+| _Systemadministratoren_ | Verantwortlich für die Konfiguration und Überwachung des Logger-Systems.
+| _Kunden (Endnutzer der Applikation)_ | Indirekte Nutzer, die von den Logs profitieren (z. B. bei der Fehlersuche oder Verbesserung der Applikation).
+| _Qualitätsmanager_ | Bewertet die Qualität der Logs und deren Konformität mit den Standards.
+|===
+
+**Externen Domänenschnittstellen**
+
+Das System interagiert mit den folgenden externen Domänen:
+
+- **Netzwerkadministration**: Zur Verwaltung der Netzwerkverbindungen zwischen den Logger-Komponenten.
+- **Docker-Umgebung**: Für die Bereitstellung und Verwaltung von Images, welche als Server verwendet werden können.
+
+=== Technical Context
+
+
+[cols="1,2", options="header"]
+|===
+| Schnittstelle | Beschreibung
+
+| _LoggerComponent -> LoggerServer_ | Austausch von Log-Messages.
+| _LoggerServer -> StringPersistor_ | Speichern von Logs in Dateien über die StringPersistor-Komponente.
+| _LoggerComponent-> StringPersistor_ | Caching von Logs in Dateien über die StringPersistor-Komponente.
+| _LoggerServer -> LoggerViewer_ | Bereitstellung von Echtzeit-Log-Daten.
+|===
+
+**Technischen Schnittstellen**
+
+Die Logger-Komponenten interagieren über standardisierte Protokolle:
+
+- **TCP/IP**: Sicherer und zuverlässiger Austausch von Logs.
+- **Docker-Integration**: Automatisierte Bereitstellung und Konfiguration.
+
+**Mapping Input/Output to Channels**
+
+- **Input (LoggerComponent):** Log-Messages, die von Anwendungen erzeugt werden.
+- **Output (LoggerServer):** Persistierte Logs in Dateien, Echtzeit-Logs (LoggerViewer).
+- **Channel:** Kommunikation erfolgt über Netzwerkprotokolle (Custom-TCP-Protokoll und WebSockets).

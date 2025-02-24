@@ -1,0 +1,46 @@
+ifndef::imagesdir[:imagesdir: ../images]
+
+// TODO: Beschreibung (als Auflistung) der Umsetzung von bekannten und relevanten «nicht funktionalen»-Anforderungen an das zu entwickelnde System.
+//
+// Beispiele:
+// - Wie garantieren Sie das Ihr System die Antwort (Reply) zu einer Anforderung (Request) innerhalb von maximal 100ms versendet?
+// - Wie garantieren Sie, dass Ihr System eine Verfügbarkeit von 99.9 % hat?
+// - Wie garantieren Sie, dass Nachrichten, welche vom System, erhalten werden nicht verloren gehen?
+// - usw.
+
+
+[[section-quality-scenarios]]
+== Quality Requirements
+
+=== Quality Tree
+
+**Diagram or Table**
+
+[cols="1,2", options="header"]
+|===
+| Qualitätsattribut | Beschreibung
+
+| _Zuverlässigkeit_ | Es dürfen keine Log-Messages verloren gehen, selbst bei Netzwerkunterbrechungen.
+| _Wartbarkeit_ | Neue Funktionen oder Änderungen an der Konfiguration müssen ohne größere Anpassungen implementiert werden können.
+| _Skalierbarkeit_ | Das System muss auch bei mehreren Logger-Clients stabil bleiben.
+|===
+
+=== Quality Scenarios
+
+[cols="1,2,3,4", options="header"]
+|===
+| Szenario-ID | Qualitätsattribut | Beschreibung | Akzeptanzkriterien
+
+| _QS-001_ | _Zuverlässigkeit_ | Wie wird garantiert, dass Nachrichten nicht verloren gehen? | Log-Messages werden bei Unterbrechungen lokal zwischengespeichert und nach Wiederherstellung der Verbindung in der korrekten Reihenfolge übertragen.
+| _QS-002_ | _Wartbarkeit_ | Wie wird die Erweiterbarkeit des Systems sichergestellt? | Verwendung von Design-Patterns wie Adapter und Strategien; Konfigurationsmöglichkeiten über externe Dateien.
+| _QS-003_ | _Skalierbarkeit_ | Wie wird sichergestellt, dass das System auch mit mehreren Logger-Clients stabil bleibt? | Der LoggerServer kann mehrere, gleichzeitige Verbindungen verwalten, ohne die Antwortzeit zu beeinträchtigen.
+| _QS-004_ | _Usability_ | Wie wird sichergestellt, dass Administratoren das System einfach konfigurieren können? | Bereitstellung einer benutzerfreundlichen Konfigurationsdatei für die Anpassung von Server- und Client-Parametern.
+| _QS-005_ | _Langlebigkeit_ | Wie wird sichergestellt, dass das System auch langfristig wartbar bleibt? | Dokumentation des Codes, regelmäßige Code-Reviews und eine klare Trennung der Verantwortlichkeiten innerhalb der Komponenten.
+| _QS-006_ | _Fehlermeldung_ | Wie wird das System sicherstellen, dass Fehler und Ausnahmen ordnungsgemäß protokolliert werden? | Das System protokolliert alle Fehler im Logger-Server und stellt sicher, dass alle Ausnahmebedingungen erfasst werden.
+| _QS-007_ | _Echtzeit-Überwachung_ | Wie wird das System sicherstellen, dass Administratoren Logs in Echtzeit überwachen können? | Der LoggerViewer zeigt alle neu eintreffenden Logs in Echtzeit an, ohne dass historische Daten angezeigt werden.
+|===
+
+**Optionale Erläuterung:**
+Die Szenarien decken die zentralen Qualitätsanforderungen des Systems ab. Jedes Szenario ist durch Testkriterien und eine definierte Implementierungsstrategie überprüfbar.
+
+

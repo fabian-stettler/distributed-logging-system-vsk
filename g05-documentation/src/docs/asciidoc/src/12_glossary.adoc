@@ -1,0 +1,65 @@
+ifndef::imagesdir[:imagesdir: ../images]
+
+[[section-Test_Protokolle]]
+== Test Protokoll
+
+
+=== Test-Protokoll 1: Logger Client cashing ohne Verbindung zum Server
+
+==== Allgemeine Informationen
+- Datum: 15.12.2024 19:00
+- Tester: Fabian Stettler
+- Ziel: In diesem manuellen Systemtest, soll überprüft werde, ob geloggte Nachrichten vom Client im LoggerViewer live sichtbar sind.
+
+==== Test Umgebung
+- Hardware: mein persönlicher Laptop (Lenovo Yoga)
+- OS: Windows
+- Software: IntelliJ IDEA, Java 21.x
+
+==== Test Durchführung
+
+image:ClientNoInitialConnectionCacheAndSend.png[Overview Diagram, width=1200px, title="Test Protokoll Logger Client cashing ohne Verbindung zum Server"]
+
+
+==== Fazit
+- Der Test hat funktioniert wie angenommen.
+
+=== Test-Protokoll 2: Logger Server hat Verbindungsunterbruch während dem Senden von LogMessages
+
+==== Allgemeine Informationen
+- Datum: 15.12.2024 19:00
+- Tester: Fabian Stettler
+- Ziel: In diesem manuellen Systemtest, soll überprüft werde, ob geloggte Nachrichten vom Client im LoggerViewer live sichtbar sind.
+
+==== Test Umgebung
+- Hardware: mein persönlicher Laptop (Lenovo Yoga)
+- OS: Windows
+- Software: IntelliJ IDEA, Java 21.x
+
+
+image:ServerDisconnectDuringConnection.png[Overview Diagram, width=1200px, title="Test Protokoll Logger Server hat Verbindungsunterbruch während dem Senden von LogMessages"]
+
+==== Fazit
+- Der Test hat funktioniert wie angenommen.
+
+==== weitere Anmerkungen
+- Beim Unterbruch der Verbindung wird eine SocketException auf der Konsole ausgegeben, kleine Unschönheit.
+
+=== Test-Protokoll 3: Client sendet LogMessages an Server und LoggerViewer zeigt sie live an
+
+==== Allgemeine Informationen
+- Datum: 15.12.2024 19:00
+- Tester: Fabian Stettler
+- Ziel: In diesem manuellen Systemtest, soll überprüft werde, ob geloggte Nachrichten vom Client im LoggerViewer live sichtbar sind.
+
+==== Test Umgebung
+- Hardware: mein persönlicher Laptop (Lenovo Yoga)
+- OS: Windows
+- Software: IntelliJ IDEA, Java 21.x
+
+==== Test Durchführung
+
+image:TestProtokoll_LoggerViewer.png[Overview Diagram, width=1200px, title="Test Protokoll Logger Server hat Verbindungsunterbruch während dem Senden von LogMessages"]
+
+==== Fazit
+- Der Test hat funktioniert wie angenommen.

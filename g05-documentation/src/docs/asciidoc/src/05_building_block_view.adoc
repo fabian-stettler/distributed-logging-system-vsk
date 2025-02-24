@@ -1,0 +1,137 @@
+ifndef::imagesdir[:imagesdir: ../images]
+
+// TODO: Beschreibung der Bausteinsicht hinzufügen. Für VSK obligatorisch.
+// In Fall von VSK erwarten wir alle die Ebenen 2 bs 4 des C4-Modells (Diagramme aber kein Code).
+// Zu allen Diagrammen wird eine Beschreibung erwartet.
+
+[[section-building-block-view]]
+
+== Building Block View
+
+=== Level 2 - Container-Diagram
+// TODO: Sicht auf Module (z.B. Teilsysteme oder Services), welche mehrere Komponenten umfassen. Die Komponenten werden noch nicht dargestellt.
+
+Das Container-Diagram zeigt die internen Komponenten und deren Beziehungen zueinander. Es gibt mehrere Container, welche zum einen zum Logging-System gehören und wie das Logging-System nach aussen kommuniziert, bzw. wie mit dem Logging-System interagiert werden.
+
+image::ContainerDiagram.jpeg[Containers C4, width=600px, title="C4_Containers"]
+
+=== Level 3 - Component-Diagram
+
+// TODO: Pro Modul (z.B. Teilsystem oder Service), welches mehrere Komponenten umfasst, ein Unterkapitel: Sicht in das Modul (Teilsystem, Service, etc.) hinein (z.B. Komponentendiagramm).
+
+Im Komponenten-Diagram wird der interne Aufbau der Container genauer aufgezeigt.
+
+==== Logger-Component
+
+Der Logger-Component ist in fünf Komponenten aufgebaut:
+
+1. **LoggerComponent**: Dies ist der Logger selbst, welcher vom Endbenutzer zum Senden von LogMessages verwendet wird.
+2. **LogMessageSendQueue**: Mittels dieses Interfaces können verschiedene Methoden zum Senden von LogMessages implementiert und verwendet werden. Momentan gibt es eine Strategie, die BlockingLogMessageSendQueue.
+3. **ConnectionAPI**: Dies ist eine auf Sockets aufgebaute Schnittstelle, mit derer mit dem Server kommuniziert werden kann.
+4. **LogMessageFormatter**: Diese Formatter ermöglichen es, die LogMessages in verschiedene Formaten zu formatieren.
+
+image::ComponentDiagramLoggerComponent.jpeg[Component-Diagram LoggerComponent, width=600px, title="C4_Components_LoggerComponent"]
+
+
+==== Logger-Server
+
+Der Logger-Server empfängt und persistiert LogMessages und besteht aus sechs Komponenten:
+
+1. **Application**: Der Startpunkt des Servers.
+2. **ConfigSource**: Verschiedene Möglichkeiten, den Server zu konfigurieren (.env, Properties oder CLI-Args).
+3. **LoggerServer**: Der Server selbst.
+4. **LogAdapter**: Eine Wrapper-Klasse für das StringPersistor Interface. Es ermöglicht eine vereinfachte Verwendung dieses, speziell für LogMessages zugeschnitten.
+5. **LoggerClient**: Repräsentiert einen verbundenen Client, welcher LogMessages senden und persistieren möchte.
+6. **LogMessageFormatter**: Diese Formatter ermöglichen es, die LogMessages in verschiedene Formate zu formatieren.
+
+image::ComponentDiagrammLoggerServer.jpg[Component-Diagram LoggerServer, width=600px, title="C4_Components_LoggerServer"]
+
+==== Logger-Viewer
+// TODO: Selbes für LoggerViewer
+
+1. **LoggerViewerServer**: Server, welcher die Verbindungen der Clients managed.
+2. **ViewerClient**: Die Client Applikation, welche die Messages als Viewer auf der Command Line ausgibt.
+3. **MessageDispatcher**: Diese Klasse erhält vom Viewer Server die LoggerViewerClient Informationen.
+Auf Basis dieser Informationen sendet der MessageDispatcher die Nachrichten an die verbundenen Clients senden.
+
+image::ComponentDiagrammLoggerViewer.jpg[Component-Diagram LoggerViewer, width=600px, title="C4_Components_LoggerViewer"]
+
+=== Level 4 - Klassen Diagramm
+
+// TODO: Pro Komponente ein Unterkapitel: Sicht in die Komponente hinein (z.B. Klassen und Interfaces bei Java).
+// Hinweis: Nur für das Verständnis der Komponente relevante Details angeben.
+
+Das Klassendiagramm bietet einen genaueren Einblick in die Implementation der Komponente. Nachfolgend werden die Klassendiagramme für alle Komponenten genauer beschrieben
+
+==== Logger-Component
+
+image::ClassDiagramLoggerComponent.jpg[Class-Diagram LoggerComponent, width=600px, title="C4_ClassDiagram_LoggerComponent"]
+
+Dieses Diagramm zeigt das Zusammenspiel der Klassen des LoggerComponent. Nachfolgend werden die einzelnen Klassen genauer erläutert:
+
+1. **LoggerFactory**: Dies ist die Implementation des `LoggerSetup` Interfaces des Interface-Teams. Diese wird genutzt, um standardisiert `LoggerComponent` Instanzen zu erzeugen.
+2. **LoggerComponent**: Dies ist die Implementation des `Logger` Interfaces des Interface-Teams. Mittels dieser Klassen kann der Endbenutzer LogMessages einfach an den Server senden.
+3. **Connection**: Die `Connection` Klasse bietet eine einfache Möglichkeit, eine TCP Verbindung zum Server aufzubauen und `NetworkTransferable` (siehe Logger-Component) Objekte zu diesem zu senden.
+4. **ReconnectConnection**: Dies ist eine Spezialisierung der `Connection` Klasse und ermöglicht es, automatisch einen neuen Verbindungsaufbauversuch zu starten, nachdem eine gewisse Zeit vergangen ist.
+5. **LogMessageCacheStrategy**: Dies ist ein Interface welches es ermöglicht, verschiedene Methoden des Cachings von LogMessages zu implementieren. 
+6. **FileCacheStrategy**: Die `FileCacheStrategy` ist eine Implementation von `LogMessageCacheStrategy`, welche die LogMessages in eine lokale Datei speichert. Dabei wird die `StringPersistorApi` verwendet.
+7. **LogMessageSendQueue**: Dies ist ein sehr schmales Interface, welches die Implementation verschiedener Methoden zum Senden von LogMessages and den Server ermöglicht. So können blockierende, nicht-blockierende oder parallele Strategien implementiert werden.
+8. **BlockingLogMessageSendQueue**: Dies ist eine Implementation von `LogMessageSendQueue`, welche LogMessages synchron an den Server sendet.
+
+==== Logger-Server
+
+image::ClassDiagramLoggerServer.jpg[Class-Diagram LggerServer, width=600px, title="C4_ClassDiagram_LoggerServer"]
+
+Dieses Diagramm zeigt das Zusammenspiel der Klassen des LoggerServers. Nachfolgend werden die einzelnen Klassen genauer erläutert:
+
+1. **Application**: Diese Klasse ist zum Starten des Servers zuständig. Dabei wir die Konfiguration mittels einer oder mehreren `ConfigSource` eingelesen und ein `LoggerServer` erstellt und gestartet.
+2. **LoggerServer**: Dies ist der Server selbst. Hier werden die eintreffenden TCP Verbindungen gehandhabt, sowie bestehende Verbindungen gespeichert.
+3. **LoggerClient**: Diese Klasse repräsentiert einen Verbundenen LoggerComponent, welcher LogMessages sendet. Hier wird dann mittels der vorgegebenen Formatierungsstrategie die LogMessage formatiert und mit dem `LogAdapter` (siehe Logger-Common) in ein Log-File gespeichert.
+4. **ApplicationConfig**: Hier kann die Konfiguration des Servers mittels einer oder mehrerer `ConfigSource` geladen werden.
+5. **ConfigSource**: Dies ist eine simple Schnittstelle, welche es ermöglicht, Konfigurationen von mehreren Quellen einzulesen.
+6. **EnvConfigSource**: Ermöglicht das Einlesen der Konfiguration mittels einer .env Datei.
+7. **ArgsConfigSource**: Ermöglicht das Einlesen der Konfiguration mittels der CLI-Argumente.
+8. **PropertiesConfigSource**: Ermöglicht das Einlesen der Konfiguration mittels eines Property-Files.
+
+
+==== Logger-Common
+
+
+image::ClassDiagramLoggerCommon.jpg[Class-Diagram LggerCommon, width=600px, title="C4_ClassDiagram_LoggerCommon"]
+
+Dieses Diagramm zeigt das Zusammenspiel der Klassen des LoggerCommon. Diese Klassen werden vom Logger-Server und Logger-Component verwendet.
+
+1. **NetworkTransferable**: Dieses Interface spezifiziert, wie Klassen über ein `DataOutputStream` geschrieben und über `DataInputStream` wieder eingelesen werden kann.
+2. **LogMessage**: Diese Klasse stellt die auszutauschenden Log-Einträge dar. Diese implementiert das `NetworkTransferable` Interface, damit sie vom Client zum Server gesendet werden kann.
+3. **NetworkMessageInputStream**: Ein Wrapper für einen `InputStream`, zugeschnitten für Objekte des Typs `NetworkTransferable`.
+4. **NetworkMessageOutputStream**: Ein Wrapper für einen `OutputStream`, zugeschnitten für Objekte des Typs `NetworkTransferable`.
+5. **InstantSerializer**: Eine Hilfsklasse welche es einfach ermöglicht, einen Instant zu einem String zu formatieren und diesen daraus wieder auszulesen.
+6. **FileCreator**: Eine Hilfsklasse mit derer eine Datei in beliebig vielen (existenten oder nicht existenten) Unterordnern erstellt werden kann.
+7. **EnumSerializer**: Diese Klasse ermöglicht es, irgendwelche Enums über einen `DataOutputStream` zu schreiben und über einen `DataInputStream` wieder einzulesen.
+8. **LogMessageFormat**: Dieses Enum listet alle möglichen Formate für Logs auf.
+9. **LogMessageFormatterFactory**: Diese Factory erzeugt den passenden Formatter für das gewünschte Format.
+10. **LogMessageFormatter**: Spezifikation, wie ein Formatierer für Logs auszusehen hat.
+11. **SpeedFormatter**: Ein Formatierer, welcher auf Geschwindigkeit der Serialisation und Deserialisation optimiert ist.
+12. **HumanReadableLogMessageFormatter**: Formatiert Logs in ein für Menschen lesbares Format.
+13. **XMLLogMessageFormatter**: Formatiert Logs als XML.
+14. **JSONLogMessageFormatter**: Formatiert Logs als JSON.
+15. **CompetitionLogMessageFormatter**: Formatiert Logs für den Wettkampf am Ende des Moduls VSK.
+16. **LogAdapter**: Dieses Interface bietet eine einfache Schnittstelle, um Logs zu persistieren.
+17. **StringPersistorLogAdapter**: Ein Adapter für die StringPersistorApi, welche Logs in eine lokale Datei schreibt.
+
+
+==== Logger-Viewer
+
+image::LoggerViewerUML.png[Class-Diagram LggerCommon, width=600px, title="C4_ClassDiagram_LoggerCommon"]
+
+Dieses Diagramm zeigt das Zusammenspiel der Klassen des LoggerViewers. Nachfolgend werden die einzelnen Klassen genauer erläutert:
+
+1. **LoggerServer**: Dies ist unsere LoggerServer Klasse, welche oben bereits beschrieben wurde.
+2. **org.tyrus.glassfish.server**: Diese Klasse ist ein Server, welcher auf der org.glassfish.tyrus.server Library basiert und mit WebSockets kommuniziert.
+Sie wird in LoggerServer gestartet und ist für Clients erreichbar. Gibt Session Objekte an den MessageDispatcher weiter.
+3. **LoggerViewerServerEndpoint**: Diese Klasse handelt die Logik des Server ab und muss bei der Erstellung angegeben werden. Sie gibt an, was bei einer neuen Connection passiert und gibt zudem neue Clients (Sessions) an den Message Dispatcher.
+Sie definiert auch, was passiert, wenn eine Session clientseitig geschlossen wird.
+4. **LoggerViewerClient**: Diese Klasse ist für die Client-Logik zuständig. Sie initialisiert die Verbindung zum Server, und gibt Nachrichten vom Server auf der Konsole aus.
+5. **MessageDispatcher**: Diese Klasse erhält von LoggerViewerServerEndpoint die LoggerViewerClient Informationen.
+Auf Basis dieser Informationen sendet der MessageDispatcher die Nachrichten an die verbundenen Clients senden.
+6. **Session**: Diese Klasse repräsentiert eine Verbindung zwischen einem Client und dem Server. Sie wird vom Server erstellt und an den MessageDispatcher weitergegeben.
