@@ -1,0 +1,12 @@
+/build/
+/nbproject/private/
+/eclipse/
+/target/
+/.gradle/
+/.vscode/
+/.idea/
+/out/
+/.settings/
+*.log
+.project
+.classpath
